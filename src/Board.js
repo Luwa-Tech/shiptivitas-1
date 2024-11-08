@@ -23,26 +23,26 @@ export default class Board extends React.Component {
   }
   getClients() {
     return [
-      ['1','Stark, White and Abbott','Cloned Optimal Architecture', 'in-progress'],
-      ['2','Wiza LLC','Exclusive Bandwidth-Monitored Implementation', 'complete'],
-      ['3','Nolan LLC','Vision-Oriented 4Thgeneration Graphicaluserinterface', 'backlog'],
-      ['4','Thompson PLC','Streamlined Regional Knowledgeuser', 'in-progress'],
-      ['5','Walker-Williamson','Team-Oriented 6Thgeneration Matrix', 'in-progress'],
-      ['6','Boehm and Sons','Automated Systematic Paradigm', 'backlog'],
-      ['7','Runolfsson, Hegmann and Block','Integrated Transitional Strategy', 'backlog'],
-      ['8','Schumm-Labadie','Operative Heuristic Challenge', 'backlog'],
-      ['9','Kohler Group','Re-Contextualized Multi-Tasking Attitude', 'backlog'],
-      ['10','Romaguera Inc','Managed Foreground Toolset', 'backlog'],
-      ['11','Reilly-King','Future-Proofed Interactive Toolset', 'complete'],
-      ['12','Emard, Champlin and Runolfsdottir','Devolved Needs-Based Capability', 'backlog'],
-      ['13','Fritsch, Cronin and Wolff','Open-Source 3Rdgeneration Website', 'complete'],
-      ['14','Borer LLC','Profit-Focused Incremental Orchestration', 'backlog'],
-      ['15','Emmerich-Ankunding','User-Centric Stable Extranet', 'in-progress'],
-      ['16','Willms-Abbott','Progressive Bandwidth-Monitored Access', 'in-progress'],
-      ['17','Brekke PLC','Intuitive User-Facing Customerloyalty', 'complete'],
-      ['18','Bins, Toy and Klocko','Integrated Assymetric Software', 'backlog'],
-      ['19','Hodkiewicz-Hayes','Programmable Systematic Securedline', 'backlog'],
-      ['20','Murphy, Lang and Ferry','Organized Explicit Access', 'backlog'],
+      ['1', 'Stark, White and Abbott', 'Cloned Optimal Architecture', 'in-progress'],
+      ['2', 'Wiza LLC', 'Exclusive Bandwidth-Monitored Implementation', 'complete'],
+      ['3', 'Nolan LLC', 'Vision-Oriented 4Thgeneration Graphicaluserinterface', 'backlog'],
+      ['4', 'Thompson PLC', 'Streamlined Regional Knowledgeuser', 'in-progress'],
+      ['5', 'Walker-Williamson', 'Team-Oriented 6Thgeneration Matrix', 'in-progress'],
+      ['6', 'Boehm and Sons', 'Automated Systematic Paradigm', 'backlog'],
+      ['7', 'Runolfsson, Hegmann and Block', 'Integrated Transitional Strategy', 'backlog'],
+      ['8', 'Schumm-Labadie', 'Operative Heuristic Challenge', 'backlog'],
+      ['9', 'Kohler Group', 'Re-Contextualized Multi-Tasking Attitude', 'backlog'],
+      ['10', 'Romaguera Inc', 'Managed Foreground Toolset', 'backlog'],
+      ['11', 'Reilly-King', 'Future-Proofed Interactive Toolset', 'complete'],
+      ['12', 'Emard, Champlin and Runolfsdottir', 'Devolved Needs-Based Capability', 'backlog'],
+      ['13', 'Fritsch, Cronin and Wolff', 'Open-Source 3Rdgeneration Website', 'complete'],
+      ['14', 'Borer LLC', 'Profit-Focused Incremental Orchestration', 'backlog'],
+      ['15', 'Emmerich-Ankunding', 'User-Centric Stable Extranet', 'in-progress'],
+      ['16', 'Willms-Abbott', 'Progressive Bandwidth-Monitored Access', 'in-progress'],
+      ['17', 'Brekke PLC', 'Intuitive User-Facing Customerloyalty', 'complete'],
+      ['18', 'Bins, Toy and Klocko', 'Integrated Assymetric Software', 'backlog'],
+      ['19', 'Hodkiewicz-Hayes', 'Programmable Systematic Securedline', 'backlog'],
+      ['20', 'Murphy, Lang and Ferry', 'Organized Explicit Access', 'backlog'],
     ].map(companyDetails => ({
       id: companyDetails[0],
       name: companyDetails[1],
@@ -52,11 +52,80 @@ export default class Board extends React.Component {
   }
   renderSwimlane(name, clients, ref) {
     return (
-      <Swimlane name={name} clients={clients} dragulaRef={ref}/>
+      <Swimlane name={name} clients={clients} dragulaRef={ref} />
     );
+  }
+  componentDidMount() {
+    this.initDragAndDrop();
+  }
+  initDragAndDrop() {
+    const containers = [
+      this.swimlanes.backlog.current,
+      this.swimlanes.inProgress.current,
+      this.swimlanes.complete.current
+    ]
+    const initDnD = Dragula(containers)
+
+    initDnD.on('drop', (el, target) => {
+      // Ensure elements are still in the DOM
+      if (!el || !target) return;
+
+      const cardId = el.getAttribute('data-id')
+      let newCardStatus = ''
+
+      // Determine the new status based on the target swimlane
+      switch (target) {
+        case this.swimlanes.backlog.current:
+          newCardStatus = 'backlog';
+          break;
+        case this.swimlanes.inProgress.current:
+          newCardStatus = 'in-progress';
+          break;
+        case this.swimlanes.complete.current:
+          newCardStatus = 'complete';
+          break;
+        default:
+          console.warn("Unknown target swimlane");
+      }
+
+      this.updateMovedCardStatus(newCardStatus, cardId)
+      this.updateMovedCardColor(el, newCardStatus)
+    })
+
+  }
+  updateMovedCardStatus(newStatus, cardId) {
+    this.setState(prevState => {
+      // Check and update the card status based on it's id
+      const updatedClients = {
+        backlog: prevState.clients.backlog.map(client => (client.id === cardId ? { ...client, status: newStatus } : client)),
+        inProgress: prevState.clients.inProgress.map(client => (client.id === cardId ? { ...client, status: newStatus } : client)),
+        complete: prevState.clients.complete.map(client => (client.id === cardId ? { ...client, status: newStatus } : client)),
+      };
+
+      return { clients: updatedClients }
+    })
+
+  }
+  updateMovedCardColor(el, newStatus) {
+    // Update the color class for the moved card
+    el.classList.remove('Card-grey', 'Card-blue', 'Card-green');
+    switch (newStatus) {
+      case 'backlog':
+        el.classList.add('Card-grey');
+        break;
+      case 'in-progress':
+        el.classList.add('Card-blue');
+        break;
+      case 'complete':
+        el.classList.add('Card-green');
+        break;
+      default:
+        console.warn("Unknown status:", newStatus);
+    }    
   }
 
   render() {
+
     return (
       <div className="Board">
         <div className="container-fluid">
@@ -76,3 +145,12 @@ export default class Board extends React.Component {
     );
   }
 }
+
+// In the "Shipping Requests" tab of the application, all tasks should now show in the backlog swimlane
+// All swimlanes should have the class "Swimlane-column" - done
+// There should be three swimlanes - done
+// When a user drags a card up or down, it reorders the card (frontend only) - done
+// When a user drags a card to a new swimlane, it stays in the swimlane - done
+// Find a storyboard and a designed version of the page in the resources section below
+// When a card changes swimlane, it should change color (backlog = grey, in progress = blue, complete = green)
+// Use the Dragula tool to make this happen
