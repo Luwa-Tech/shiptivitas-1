@@ -145,12 +145,3 @@ export default class Board extends React.Component {
     );
   }
 }
-
-// In the "Shipping Requests" tab of the application, all tasks should now show in the backlog swimlane
-// All swimlanes should have the class "Swimlane-column" - done
-// There should be three swimlanes - done
-// When a user drags a card up or down, it reorders the card (frontend only) - done
-// When a user drags a card to a new swimlane, it stays in the swimlane - done
-// Find a storyboard and a designed version of the page in the resources section below
-// When a card changes swimlane, it should change color (backlog = grey, in progress = blue, complete = green)
-// Use the Dragula tool to make this happen
